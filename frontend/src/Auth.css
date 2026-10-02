@@ -1,0 +1,383 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+/* ---------- Background ---------- */
+.auth-page {
+   
+    --w: min(380px, calc(100vw - 40px));
+    /* card ni real width */
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #e9e4f5, #dff3f0 50%, #f6e3ea);
+    font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* glowing blur blobs */
+.auth-page::before,
+.auth-page::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(70px);
+    z-index: 0;
+}
+
+.auth-page::before {
+    width: 380px;
+    height: 380px;
+    background: #8b7cf6;
+    top: -80px;
+    left: -80px;
+    opacity: 0.65;
+}
+
+.auth-page::after {
+    width: 340px;
+    height: 340px;
+    background: #4fd1c5;
+    bottom: -80px;
+    right: -60px;
+    opacity: 0.6;
+}
+
+/* ---------- Sharp blobs (card na corners par) ---------- */
+.blob {
+    position: absolute;
+    border-radius: 50%;
+    animation: float 9s ease-in-out infinite;
+}
+
+.blob1 {
+    width: 200px;
+    height: 200px;
+    background: linear-gradient(135deg, #ffd86f, #ff5fa2);
+    top: calc(50% - 250px);
+    left: calc(50% - var(--w) / 2 - 60px);
+}
+
+.blob2 {
+    width: 230px;
+    height: 230px;
+    background: linear-gradient(135deg, #ff9bd2, #ec1c7d);
+    bottom: calc(50% - 250px);
+    right: calc(50% - var(--w) / 2 - 70px);
+    animation-delay: -3s;
+}
+
+.blob3 {
+    width: 110px;
+    height: 110px;
+    background: linear-gradient(135deg, #7af5e0, #19b7a8);
+    top: calc(50% - 30px);
+    left: calc(50% + var(--w) / 2 - 70px);
+    animation-delay: -6s;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(14px, -18px);
+    }
+}
+
+/* ---------- LIQUID GLASS CARD ---------- */
+.auth-card {
+    position: relative;
+    z-index: 1;
+    width: var(--w);
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-radius: 32px;
+    overflow: hidden;
+
+    background: linear-gradient(135deg,
+            rgba(255, 255, 255, 0.28) 0%,
+            rgba(255, 255, 255, 0.09) 50%,
+            rgba(214, 107, 143, 0.53) 100%);
+    backdrop-filter: blur(14px) saturate(200%) brightness(1.12);
+    -webkit-backdrop-filter: blur(14px) saturate(200%) brightness(1.12);
+
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow:
+        0 30px 60px rgba(20, 10, 70, 0.35),
+        /* bahar ni shadow */
+        inset 2px 2px 3px rgba(255, 255, 255, 0.75),
+        /* upar-left chamak */
+        inset -2px -2px 3px rgba(255, 255, 255, 0.25),
+        /* niche-right chamak */
+        inset 0 0 40px rgba(255, 255, 255, 0.12);
+    /* andar ni glow */
+}
+
+/* upar ni glossy reflection */
+.auth-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 45%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0));
+    border-radius: 32px 32px 60% 60% / 32px 32px 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* content reflection ni upar rahe */
+.auth-card>* {
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- Text ---------- */
+.auth-card h2 {
+    margin: 0 0 6px;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(40, 20, 120, 0.35);
+}
+
+/* ---------- Inputs ---------- */
+.auth-card input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 18px;
+    border-radius: 999px;
+    border: 1px solid rgb(231, 231, 231);
+    background: rgba(255, 255, 255, 0.55);
+    outline: none;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s ease;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    color: #9a27f3;
+    caret-color: #9a27f3;
+}
+
+.auth-card input::placeholder {
+    color: rgba(172, 170, 170, 0.674);
+    font-weight: 400;
+}
+
+.auth-card input:focus {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: #8b7cf6;
+    box-shadow: 0 0 0 4px rgba(139, 124, 246, 0.25);
+}
+
+/* ---------- Liquid glass purple button ---------- */
+.auth-card button {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding: 15px 24px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: #fff;
+    text-shadow: 0 1px 6px rgba(60, 30, 160, 0.5);
+
+    background: linear-gradient(160deg,
+            rgba(190, 175, 255, 0.95) 0%,
+            rgba(140, 115, 245, 0.9) 45%,
+            rgba(118, 92, 235, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, 0.75),
+        inset 0 -6px 12px rgba(190, 170, 255, 0.55),
+        inset 0 0 14px rgba(255, 255, 255, 0.18),
+        6px 12px 22px rgba(108, 80, 230, 0.45),
+        0 2px 6px rgba(108, 80, 230, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+/* button ni upar ni shine */
+.auth-card button::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 6%;
+    right: 6%;
+    height: 50%;
+    border-radius: 999px 999px 60% 60% / 100% 100% 40% 40%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.08));
+    pointer-events: none;
+    z-index: -1;
+}
+
+.auth-card button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: brightness(1.06) saturate(1.1);
+    box-shadow:
+        inset 0 2px 3px rgba(255, 255, 255, 0.85),
+        inset 0 -6px 12px rgba(190, 170, 255, 0.6),
+        inset 0 0 14px rgba(255, 255, 255, 0.22),
+        8px 16px 28px rgba(108, 80, 230, 0.55),
+        0 2px 8px rgba(108, 80, 230, 0.3);
+}
+
+.auth-card button:active:not(:disabled) {
+    transform: translateY(1px) scale(0.98);
+    box-shadow:
+        inset 0 3px 8px rgba(70, 40, 190, 0.35),
+        inset 0 -2px 6px rgba(190, 170, 255, 0.4),
+        3px 6px 12px rgba(108, 80, 230, 0.4);
+}
+
+.auth-card button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ---------- Message ---------- */
+.auth-msg {
+    margin: 0;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #4a3fb5;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+/* ---------- Switch link ---------- */
+.auth-switch {
+    margin: 0;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(94, 13, 170, 0.452);
+    text-shadow: 0 1px 4px rgba(40, 20, 120, 0.3);
+}
+
+.auth-switch:hover {
+    color: #7a1b9f49;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+/* Tablet / nana laptop */
+@media (max-width: 768px) {
+    .auth-page::before {
+        width: 280px;
+        height: 280px;
+    }
+
+    .auth-page::after {
+        width: 260px;
+        height: 260px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+    .auth-page {
+        padding: 16px;
+    }
+
+    .auth-card {
+        padding: 26px 20px;
+        gap: 14px;
+        border-radius: 26px;
+    }
+
+    .auth-card::before {
+        border-radius: 26px 26px 60% 60% / 26px 26px 30px 30px;
+    }
+
+    .auth-card h2 {
+        font-size: 26px;
+    }
+
+    /* 16px thi nano hoy to iPhone par zoom thay */
+    .auth-card input {
+        padding: 13px 16px;
+        font-size: 16px;
+    }
+
+    .auth-card button {
+        padding: 14px 20px;
+        font-size: 15px;
+    }
+
+    .blob1 {
+        width: 140px;
+        height: 140px;
+        top: calc(50% - 210px);
+    }
+
+    .blob2 {
+        width: 160px;
+        height: 160px;
+        bottom: calc(50% - 210px);
+    }
+
+    .blob3 {
+        width: 80px;
+        height: 80px;
+    }
+}
+
+/* Bahu nano screen (320px) */
+@media (max-width: 360px) {
+    .auth-card {
+        padding: 22px 16px;
+    }
+
+    .auth-card h2 {
+        font-size: 24px;
+    }
+}
+
+/* Landscape / ochi height */
+@media (max-height: 560px) {
+    .auth-page {
+        align-items: flex-start;
+        padding-top: 24px;
+        padding-bottom: 24px;
+        overflow-y: auto;
+    }
+}
+
+/* Touch devices par hover effect nahi */
+@media (hover: none) {
+    .auth-card button:hover:not(:disabled) {
+        transform: none;
+        filter: none;
+    }
+}
+
+/* Animation ochhi karva vala users mate */
+@media (prefers-reduced-motion: reduce) {
+    .blob {
+        animation: none;
+    }
+}
