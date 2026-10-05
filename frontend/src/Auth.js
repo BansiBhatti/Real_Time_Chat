@@ -1,13 +1,13 @@
 import { useState } from "react";
 import "./Auth.css";
 import axios from "axios";
+import {API} from './API';
 
 export default function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [msg, setMsg] = useState("");
   const [loading, setLoading] = useState(false);
-  const API = "http://localhost:5000";
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 

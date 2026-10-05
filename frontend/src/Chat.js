@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
+import {API} from './API';
 
 
 const timeOf = (d) =>
   new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 export default function Chat({ user, onLogout }) {
-  const API = "http://localhost:5000";
   const [users, setUsers] = useState([]);
   const [selected, setSelected] = useState(null); // kon sathe chat khuli chhe
   const [messages, setMessages] = useState([]);

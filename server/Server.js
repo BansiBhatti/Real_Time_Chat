@@ -40,7 +40,8 @@ app.use('/messages', messagesRoute);
 // Express + Socket.io ek j server par
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: { origin: "*" }, // testing mate; React banaviye tyare 5173 j rakhsu
+    cors: ["http://localhost:5173", "https://real-time-chat-a6io-7i9rc7d1h-bansi4.vercel.app"],// testing mate; React banaviye tyare 5173 j rakhsu
+    methods: ["GET", "POST"],
 });
 require("./socket")(io);
 
