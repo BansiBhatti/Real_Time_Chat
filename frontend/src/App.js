@@ -9,19 +9,30 @@ export default function App() {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const [openSignup, setOpenSignup] = useState(false);
+
   const handleLogin = (data) => {
     localStorage.setItem("chatUser", JSON.stringify(data));
+    setOpenSignup(false);
     setUser(data);
   };
 
   const handleLogout = () => {
     localStorage.removeItem("chatUser");
+    setOpenSignup(false);
     setUser(null);
   };
 
+  // "+ Add user" -> logout karine seedhu Sign up page kholo
+  const handleAddUser = () => {
+    localStorage.removeItem("chatUser");
+    setUser(null);
+    setOpenSignup(true);
+  };
+
   return user ? (
-    <Chat user={user} onLogout={handleLogout} />
+    <Chat user={user} onLogout={handleLogout} onAddUser={handleAddUser} />
   ) : (
-    <Auth onLogin={handleLogin} />
+    <Auth onLogin={handleLogin} startOnSignup={openSignup} />
   );
 }

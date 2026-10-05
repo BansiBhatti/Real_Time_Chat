@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
-import {API} from './API';
+import { API } from './API';
 
 
 const timeOf = (d) =>
   new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-export default function Chat({ user, onLogout }) {
+export default function Chat({ user, onLogout, onAddUser }) {
   const [users, setUsers] = useState([]);
   const [selected, setSelected] = useState(null); // kon sathe chat khuli chhe
   const [messages, setMessages] = useState([]);
@@ -125,7 +125,10 @@ export default function Chat({ user, onLogout }) {
             <div className="avatar">{user.name?.[0]?.toUpperCase()}</div>
             <span>{user.name}</span>
           </div>
-          <button className="link-btn" onClick={onLogout}>Logout</button>
+          <div>
+            <button className="link-btn" onClick={onAddUser}>+</button>
+            <button className="link-btn" onClick={onLogout}>Logout</button>
+          </div>
         </header>
 
         <div className="user-list">
@@ -139,7 +142,7 @@ export default function Chat({ user, onLogout }) {
               <div className="avatar">{u.name?.[0]?.toUpperCase()}</div>
               <div className="user-info">
                 <strong>{u.name}</strong>
-                <small>{u.lastMessage.text}</small>
+                <small>{u.lastMessage?.text}</small>
               </div>
               {unread[u._id] > 0 && <span className="badge">{unread[u._id]}</span>}
             </div>
