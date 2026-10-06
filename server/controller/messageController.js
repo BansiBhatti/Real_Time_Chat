@@ -18,3 +18,11 @@ exports.getMessages = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 };
+
+exports.markRead = async (req, res) => {
+    await Message.updateMany(
+        { senderId: req.params.id, receiverId: req.userId, seen: false },
+        { seen: true },
+    )
+    res.json({ ok: true });
+}

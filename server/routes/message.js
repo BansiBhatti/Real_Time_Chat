@@ -6,4 +6,6 @@ const router = express.Router();
 
 router.get("/:userId", verifyToken, getMessages);
 
+router.put("/read/:id", verifyToken, markRead);
+
 module.exports = router;

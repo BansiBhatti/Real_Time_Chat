@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import axios from "axios";
 import { API } from './API';
 
@@ -17,35 +17,77 @@ export default function Chat({ user, onLogout, onAddUser }) {
 
   const socketRef = useRef(null);
   const selectedRef = useRef(null); // socket handler ma latest selected user mate
+  const usersRef = useRef([]);
   const bottomRef = useRef(null);
   const typingTimer = useRef(null);
+
 
   useEffect(() => {
     selectedRef.current = selected;
   }, [selected]);
 
-  // 1. Users ni list (API thi)
-  const loadUsers = () =>
-    axios
-      .get(API + "/users", { headers: { Authorization: "Bearer " + user.token } })
-      .then((res) => setUsers(res.data))
-      .catch(() => onLogout());
-
-  // 1.
   useEffect(() => {
-    loadUsers();
-  }, []);
+    usersRef.current = users;
+  }, [users]);
+
+  // 1. Users ni list (API thi)
+  const loadUsers = async (retry = 2) => {
+    try {
+      const res = await axios.get(API + "/users", {
+        headers: { Authorization: "Bearer " + user.token },
+      })
+      setUsers(res.data);
+
+      const counts = {};
+      res.data.forEach((u) => {
+        // je chat khuli chhe teno count 0 rakho
+        counts[u._id] = selectedRef.current?._id === u._id ? 0 : u.unreadCount || 0;
+      });
+      setUnread(counts);
+
+    } catch (e) {
+      if (e.response?.status === 401) {
+        onLogout();
+      } else if (retry > 0) {
+        setTimeout(() => loadUsers(retry - 1), 3000);
+      } else {
+        console.log("Doesn't load Users:", e.message);
+      }
+    }
+  }
+
+
+  const loadMessages = async (id) => {
+    try {
+      const { data } = await axios.get(API + "/messages/" + id, {
+        headers: { Authorization: "Bearer " + user.token },
+      });
+      if (selectedRef.current?._id === id) setMessages(data);   // biji chat khuli hoy to overwrite na karo
+    } catch (err) {
+      console.log(err.response?.data?.message || err.message);
+    }
+  };
+  // 1.
 
   // 2. Socket connect (token sathe) ane events sambhalvi
   useEffect(() => {
     const socket = io(API, { auth: { token: user.token } });
     socketRef.current = socket;
 
+    socket.on("connect", () => {
+      loadUsers();                            // 1. reconnect thay tyare list taaji
+      if (selectedRef.current) loadMessages(selectedRef.current._id);
+    });
+    socket.on("connect_error", (err) => {
+      if (err.message === "Invalid Token") onLogout();
+    });
+
     socket.on("getMessage", (m) => {
       const isOpen = selectedRef.current?._id === m.senderId;
 
       if (isOpen) {
         setMessages((prev) => [...prev, m]);
+        markRead(m.senderId);
       } else {
         setUnread((prev) => ({ ...prev, [m.senderId]: (prev[m.senderId] || 0) + 1 }));
       }
@@ -75,10 +117,12 @@ export default function Chat({ user, onLogout, onAddUser }) {
 
   // Koi user par click -> teni chat kholo + old messages lavo (API thi)
   const openChat = async (u) => {
+    selectedRef.current = u;
     setSelected(u);
     setMessages([]);
     setTyping(false);
     setUnread((prev) => ({ ...prev, [u._id]: 0 }));
+    markRead(u._id);
 
     try {
       const { data } = await axios.get(API + "/messages/" + u._id, {
@@ -94,6 +138,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
   const send = (e) => {
     e.preventDefault();
     if (!text.trim() || !selected) return;
+    if (!socketRef.current?.connected) return;
 
     socketRef.current.emit(
       "sendMessage",
@@ -113,11 +158,6 @@ export default function Chat({ user, onLogout, onAddUser }) {
     if (selected) socketRef.current.emit("typing", { receiverId: selected._id });
   };
 
-  const usersRef = useRef([]);
-  useEffect(() => {
-    usersRef.current = users;
-  }, [users]);
-
   const updateLast = (userId, message) => {
     setUsers((prev) =>
       prev
@@ -129,6 +169,11 @@ export default function Chat({ user, onLogout, onAddUser }) {
         )
     );
   };
+
+  const markRead = (id) =>
+    axios
+      .put(API + "/messages/read/" + id, {}, { headers: { Authorization: "Bearer " + user.token } })
+      .catch(() => { });
 
   useEffect(() => {
     if (selected && messages.length > 0) {
