@@ -27,6 +27,7 @@ exports.getUsers = async (req, res) => {
                 senderId: u._id,
                 receiverId: req.userId,
                 seen: false,
+                deleted: { $ne: true },
             });
 
             result.push({
@@ -37,7 +38,7 @@ exports.getUsers = async (req, res) => {
                 unreadCount,
             });
         }
-        
+
         result.sort(
             (a, b) =>
                 new Date(b.lastMessage?.createdAt || 0) -

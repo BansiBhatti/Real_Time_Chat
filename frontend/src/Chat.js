@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { io } from "socket.io-client";
 import axios from "axios";
 import { API } from './API';
 
@@ -8,6 +8,11 @@ const timeOf = (d) =>
   new Date(d).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 export default function Chat({ user, onLogout, onAddUser }) {
+
+  const [editing, setEditing] = useState(null);
+  const [menuId, setMenuId] = useState(null);
+  const authHeader = { headers: { Authorization: "Bearer " + user.token } };
+
   const [users, setUsers] = useState([]);
   const [selected, setSelected] = useState(null); // kon sathe chat khuli chhe
   const [messages, setMessages] = useState([]);
@@ -78,6 +83,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
       loadUsers();                            // 1. reconnect thay tyare list taaji
       if (selectedRef.current) loadMessages(selectedRef.current._id);
     });
+
     socket.on("connect_error", (err) => {
       if (err.message === "Invalid Token") onLogout();
     });
@@ -98,6 +104,10 @@ export default function Chat({ user, onLogout, onAddUser }) {
         loadUsers();                 // navo user -> list pharithi lavo
       }
     });
+
+    socket.on("messageEdited", (m) => patchMessage(m));
+
+    socket.on("messageDeleted", (m) => patchMessage(m));
 
     socket.on("typing", ({ senderId }) => {
       if (selectedRef.current && selectedRef.current._id === senderId) {
@@ -121,6 +131,8 @@ export default function Chat({ user, onLogout, onAddUser }) {
     setSelected(u);
     setMessages([]);
     setTyping(false);
+    setEditing(null);
+    setMenuId(null);
     setUnread((prev) => ({ ...prev, [u._id]: 0 }));
     markRead(u._id);
 
@@ -135,10 +147,25 @@ export default function Chat({ user, onLogout, onAddUser }) {
   };
 
   // Message moklvo (socket thi)
-  const send = (e) => {
+  const send = async (e) => {
     e.preventDefault();
     if (!text.trim() || !selected) return;
     if (!socketRef.current?.connected) return;
+
+    if (editing) {
+      try {
+        const { data } = await axios.put(
+          API + "/messages/" + editing._id,
+          { text },
+          authHeader
+        );
+        patchMessage(data);
+      } catch (err) {
+        console.log(err.response?.data?.message || err.message);
+      }
+      cancelEdit();
+      return;
+    }
 
     socketRef.current.emit(
       "sendMessage",
@@ -168,6 +195,35 @@ export default function Chat({ user, onLogout, onAddUser }) {
             new Date(a.lastMessage?.createdAt || 0)
         )
     );
+  };
+
+  const patchMessage = (m) => {
+    setMessages((prev) => prev.map((x) => (x._id === m._id ? m : x)));
+    setUsers((prev) =>
+      prev.map((u) => (u.lastMessage?._id === m._id ? { ...u, lastMessage: m } : u))
+    );
+  };
+
+  const startEdit = (m) => {
+    setEditing(m);
+    setText(m.text);
+    setMenuId(null);
+  };
+
+  const cancelEdit = () => {
+    setEditing(null);
+    setText("");
+  };
+
+  const removeMsg = async (m) => {
+    setMenuId(null);
+    if (!window.confirm("Delete this message?")) return;
+    try {
+      const { data } = await axios.delete(API + "/messages/" + m._id, authHeader);
+      patchMessage(data);
+    } catch (e) {
+      console.log(e.response?.data?.message || e.message);
+    }
   };
 
   const markRead = (id) =>
@@ -217,7 +273,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
 
                   <div className="row-bottom">
                     <small className={"last-msg" + (count > 0 ? " unread" : "")}>
-                      {last ? (last.senderId === user._id ? "You: " : "") + last.text : ""}
+                      {last ? last.deleted ? "Message deleted" : (last.senderId === user._id ? "You: " : "") + last.text : ""}
                     </small>
                     {count > 0 && <span className="badge">{count}</span>}
                   </div>
@@ -245,17 +301,52 @@ export default function Chat({ user, onLogout, onAddUser }) {
             </header>
 
             <div className="messages">
-              {messages.map((m) => (
-                <div
-                  key={m._id}
-                  className={"bubble " + (m.senderId === user._id ? "mine" : "theirs")}
-                >
-                  <span>{m.text}</span>
-                  <small>{timeOf(m.createdAt)}</small>
-                </div>
-              ))}
+              {messages.map((m) => {
+                const mine = m.senderId === user._id;
+                return (
+                  <div
+                    key={m._id}
+                    className={"bubble relative " + (mine ? "mine" : "theirs")}
+                    onClick={() => mine && !m.deleted && setMenuId(menuId === m._id ? null : m._id)}
+                  >
+                    <span className={m.deleted ? "italic opacity-60" : ""}>
+                      {m.deleted ? "This message was deleted" : m.text}
+                    </span>
+                    <small>
+                      {m.edited && !m.deleted ? "edited " : ""}
+                      {timeOf(m.createdAt)}
+                    </small>
+
+                    {menuId === m._id && (
+                      <div className="flex gap-1.5 mt-1.5">
+                        <button
+                          type="button"
+                          className="text-xs px-2.5 py-0.5 rounded-lg cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); startEdit(m); }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="text-xs px-2.5 py-0.5 rounded-lg cursor-pointer"
+                          onClick={(e) => { e.stopPropagation(); removeMsg(m); }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               <div ref={bottomRef} />
             </div>
+
+            {editing && (
+              <div className="flex justify-between items-center px-3.5 py-1.5 text-[13px] bg-white/50">
+                <span>Editing message</span>
+                <button type="button" className="cursor-pointer" onClick={cancelEdit}>✕</button>
+              </div>
+            )}
 
             <form className="composer" onSubmit={send}>
               <input

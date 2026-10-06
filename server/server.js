@@ -42,9 +42,17 @@ app.use('/messages', messagesRoute);
 // Express + Socket.io ek j server par
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: ["http://localhost:5173", "https://real-time-chat-a6io-7i9rc7d1h-bansi4.vercel.app"],// testing mate; React banaviye tyare 5173 j rakhsu
-    methods: ["GET", "POST"],
+    cors: {
+        origin: [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "https://real-time-chat-a6io.vercel.app",
+        ], // testing mate; React banaviye tyare 5173 j rakhsu
+        methods: ["GET", "POST"],
+    }
 });
+
+app.set("io", io);          // io banavya PACHI (controller ma req.app.get("io") mate)
 require("./socket")(io);
 
 const port = process.env.PORT || 5000;
