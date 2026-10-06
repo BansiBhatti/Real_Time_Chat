@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { API } from './API';
@@ -36,7 +36,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
   }, [users]);
 
   // 1. Users ni list (API thi)
-  const loadUsers = async (retry = 2) => {
+  const loadUsers = useCallback(async (retry = 2) => {
     try {
       const res = await axios.get(API + "/users", {
         headers: { Authorization: "Bearer " + user.token },
@@ -59,8 +59,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
         console.log("Doesn't load Users:", e.message);
       }
     }
-  }
-
+  }, [user.token, onLogout]);
 
   const loadMessages = async (id) => {
     try {
@@ -72,6 +71,11 @@ export default function Chat({ user, onLogout, onAddUser }) {
       console.log(err.response?.data?.message || err.message);
     }
   };
+
+  const markRead = (id) =>
+    axios
+      .put(API + "/messages/read/" + id, {}, { headers: { Authorization: "Bearer " + user.token } })
+      .catch(() => { });
   // 1.
 
   // 2. Socket connect (token sathe) ane events sambhalvi
@@ -118,7 +122,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
     });
 
     return () => socket.disconnect();
-  }, [user.token]);
+  }, [user.token, loadUsers, loadMessages, markRead, onLogout]);
 
   // 3. Navo message aave to niche scroll
   useEffect(() => {
@@ -226,16 +230,13 @@ export default function Chat({ user, onLogout, onAddUser }) {
     }
   };
 
-  const markRead = (id) =>
-    axios
-      .put(API + "/messages/read/" + id, {}, { headers: { Authorization: "Bearer " + user.token } })
-      .catch(() => { });
+
 
   useEffect(() => {
     if (selected && messages.length > 0) {
       updateLast(selected._id, messages[messages.length - 1]);
     }
-  }, [messages]);
+  }, [messages, selected]);
 
   return (
     <div className={"app" + (selected ? " chat-open" : "")}>
@@ -302,7 +303,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
 
             <div className="messages">
               {messages.map((m) => {
-                const mine = m.senderId === user._id;
+                const mine = String(m.senderId) === String(user._id);
                 return (
                   <div
                     key={m._id}

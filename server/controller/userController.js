@@ -19,9 +19,6 @@ exports.getUsers = async (req, res) => {
                 ],
             }).sort({ createdAt: -1 });
 
-            result.push({ _id: u._id, name: u.name, email: u.email, lastMessage: last });
-
-
             // samne vala e moklela, haju vanchya nathi tevā messages
             const unreadCount = await Message.countDocuments({
                 senderId: u._id,
@@ -30,13 +27,7 @@ exports.getUsers = async (req, res) => {
                 deleted: { $ne: true },
             });
 
-            result.push({
-                _id: u._id,
-                name: u.name,
-                email: u.email,
-                lastMessage: last,
-                unreadCount,
-            });
+            result.push({_id: u._id,name: u.name,email: u.email,lastMessage: last,unreadCount,});
         }
 
         result.sort(
