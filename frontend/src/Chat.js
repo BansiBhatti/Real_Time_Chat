@@ -25,11 +25,15 @@ export default function Chat({ user, onLogout, onAddUser }) {
   }, [selected]);
 
   // 1. Users ni list (API thi)
-  useEffect(() => {
+  const loadUsers = () =>
     axios
       .get(API + "/users", { headers: { Authorization: "Bearer " + user.token } })
       .then((res) => setUsers(res.data))
-      .catch(() => onLogout()); // token khotu / expire -> again login
+      .catch(() => onLogout());
+
+  // 1.
+  useEffect(() => {
+    loadUsers();
   }, []);
 
   // 2. Socket connect (token sathe) ane events sambhalvi
@@ -38,13 +42,18 @@ export default function Chat({ user, onLogout, onAddUser }) {
     socketRef.current = socket;
 
     socket.on("getMessage", (m) => {
-      updateLast(m.senderId, m);
+      const isOpen = selectedRef.current?._id === m.senderId;
 
-      if (selectedRef.current && selectedRef.current._id === m.senderId) {
-        setMessages((prev) => [...prev, m]); // aa j chat khuli chhe
+      if (isOpen) {
+        setMessages((prev) => [...prev, m]);
       } else {
-        // bija koi no message -> unread badge
         setUnread((prev) => ({ ...prev, [m.senderId]: (prev[m.senderId] || 0) + 1 }));
+      }
+
+      if (usersRef.current.some((u) => u._id === m.senderId)) {
+        updateLast(m.senderId, m);   // user list ma chhe -> seedhu update
+      } else {
+        loadUsers();                 // navo user -> list pharithi lavo
       }
     });
 
@@ -104,6 +113,11 @@ export default function Chat({ user, onLogout, onAddUser }) {
     if (selected) socketRef.current.emit("typing", { receiverId: selected._id });
   };
 
+  const usersRef = useRef([]);
+  useEffect(() => {
+    usersRef.current = users;
+  }, [users]);
+
   const updateLast = (userId, message) => {
     setUsers((prev) =>
       prev
@@ -116,10 +130,17 @@ export default function Chat({ user, onLogout, onAddUser }) {
     );
   };
 
+  useEffect(() => {
+    if (selected && messages.length > 0) {
+      updateLast(selected._id, messages[messages.length - 1]);
+    }
+  }, [messages]);
+
   return (
     <div className={"app" + (selected ? " chat-open" : "")}>
       {/* LEFT: users list */}
       <aside className="sidebar">
+
         <header className="bar">
           <div className="me">
             <div className="avatar">{user.name?.[0]?.toUpperCase()}</div>
@@ -133,20 +154,33 @@ export default function Chat({ user, onLogout, onAddUser }) {
 
         <div className="user-list">
           {users.length === 0 && <p className="empty">No Users</p>}
-          {users.map((u) => (
-            <div
-              key={u._id}
-              className={"user-row" + (selected?._id === u._id ? " active" : "")}
-              onClick={() => openChat(u)}
-            >
-              <div className="avatar">{u.name?.[0]?.toUpperCase()}</div>
-              <div className="user-info">
-                <strong>{u.name}</strong>
-                <small>{u.lastMessage?.text}</small>
+          {users.map((u) => {
+            const count = unread[u._id] || 0;
+            const last = u.lastMessage;
+
+            return (
+              <div
+                key={u._id}
+                className={"user-row" + (selected?._id === u._id ? " active" : "")}
+                onClick={() => openChat(u)}
+              >
+                <div className="avatar">{u.name?.[0]?.toUpperCase()}</div>
+
+                <div className="user-info">
+
+                  <strong>{u.name}</strong>
+
+                  <div className="row-bottom">
+                    <small className={"last-msg" + (count > 0 ? " unread" : "")}>
+                      {last ? (last.senderId === user._id ? "You: " : "") + last.text : ""}
+                    </small>
+                    {count > 0 && <span className="badge">{count}</span>}
+                  </div>
+                </div>
               </div>
-              {unread[u._id] > 0 && <span className="badge">{unread[u._id]}</span>}
-            </div>
-          ))}
+            )
+
+          })}
         </div>
       </aside>
 
