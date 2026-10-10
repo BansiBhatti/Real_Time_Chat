@@ -97,6 +97,12 @@ input {
   white-space: nowrap;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;  
+}
+
 .link-btn {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, .6);
@@ -181,16 +187,38 @@ input {
   font-style: italic;
 }
 
+.user-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;         
+}
+
+.row-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  gap: 8px;
+}
+
 .badge {
+  width: auto;              
+  flex: 0 0 auto;          
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
   background: #25d366;
   color: #fff;
-  min-width: 22px;
-  height: 22px;
-  border-radius: 11px;
-  display: grid;
-  place-items: center;
   font-size: 12px;
-  padding: 0 6px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .empty {
@@ -199,7 +227,6 @@ input {
   text-align: center;
 }
 
-/* chat window */
 .placeholder {
   margin: auto;
   color: #667;

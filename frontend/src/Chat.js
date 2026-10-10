@@ -248,7 +248,7 @@ export default function Chat({ user, onLogout, onAddUser }) {
             <div className="avatar">{user.name?.[0]?.toUpperCase()}</div>
             <span>{user.name}</span>
           </div>
-          <div>
+          <div className="actions">
             <button className="link-btn" onClick={onAddUser}>+</button>
             <button className="link-btn" onClick={onLogout}>Logout</button>
           </div>
